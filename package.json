@@ -1,17 +1,18 @@
 {
   "name": "use-clamp-text",
   "description": "react hook to clamp multiline text to a given height in a responsive way (in < 2.5kb)",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "lib/index.js",
   "module": "esm/index.js",
   "types": "./lib",
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "import": "./esm/index.js",
-      "require": "./lib/index.js"
-    }
-  },
+  "files": [
+    "esm/*",
+    "lib/*",
+    "LICENSE",
+    "src",
+    "package.json",
+    "README.md"
+  ],
   "sideEffects": false,
   "scripts": {
     "size": "yarn build:es && size-limit",
