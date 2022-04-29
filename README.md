@@ -1,5 +1,7 @@
 # use-clamp-text
 
+![Bundle Size](https://badgen.net/bundlephobia/minzip/use-clamp-text) ![npm version](https://badgen.net/npm/v/use-clamp-text) ![types](https://badgen.net/npm/types/use-clamp-text) ![license](https://badgen.net/github/license/use-clamp-text)
+
 react hook to clamp multiline text to a given height in a responsive way and with extreme flexibility _(under 2.5kb)_
 
 [Line Clampin’ (Truncating Multiple Line Text)](https://css-tricks.com/line-clampin/) is a major hassle still for most browsers.
@@ -39,7 +41,7 @@ const [ref, { noClamp, clampedText }] = useClampText({
 
 ### Advanced Example
 
-[Check out the codesandbox example](https://codesandbox.io/s/xenodochial-hoover-ty3u4)
+[Check out the codesandbox example](https://codesandbox.io/s/xenodochial-hoover-ty3u49?file=/src/App.js)
 
 ## API Reference
 
