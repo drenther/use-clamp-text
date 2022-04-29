@@ -1,0 +1,12 @@
+.idea
+.vscode
+examples/bundle.js
+node_modules
+npm-debug.js
+esm
+lib
+.git
+.DS_store
+coverage
+tmp
+yarn-error.log

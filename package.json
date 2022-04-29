@@ -1,0 +1,72 @@
+{
+  "name": "use-clamp-text",
+  "description": "react hook to clamp multiline text to a given height in a responsive way (in < 2.5kb)",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "module": "esm/index.js",
+  "types": "./lib",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "size": "yarn build:es && size-limit",
+    "build": "rm -rf ./lib/* ./esm/* && yarn size && yarn build:cjs && yarn build:es",
+    "build:cjs": "tsc",
+    "build:es": "tsc -m esNext --outDir esm",
+    "prepublishOnly": "yarn build"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/drenther/use-clamp-text.git"
+  },
+  "keywords": [
+    "react",
+    "react-hook",
+    "hook",
+    "clamp",
+    "text",
+    "clamp-text",
+    "multiline",
+    "responsive"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "homepage": "https://github.com/drenther/use-clamp-text#readme",
+  "author": {
+    "name": "Soumyajit Pathak"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "rooks": "^5.11.0"
+  },
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^7.0.8",
+    "@types/react": "^18.0.8",
+    "@types/react-dom": "^18.0.3",
+    "@typescript-eslint/eslint-plugin": "^5.21.0",
+    "@typescript-eslint/parser": "^5.21.0",
+    "eslint": "^8.14.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-react-app": "^7.0.1",
+    "prettier": "^2.6.2",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "size-limit": "^7.0.8",
+    "typescript": "^4.6.4"
+  },
+  "size-limit": [
+    {
+      "path": "esm/index.js",
+      "limit": "2.5 KB"
+    }
+  ]
+}
