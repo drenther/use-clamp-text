@@ -43,13 +43,13 @@ const [ref, { noClamp, clampedText }] = useClampText({
 
 ## API Reference
 
-| prop     | type      | default | description                                              |
-| -------- | --------- | ------- | -------------------------------------------------------- |
-| text     | `string`  |         | Text you wish to clamp                                   |
-| ellipsis | `string`  | `'…'`   | String displayed after the clamped `text`                |
-| expanded | `boolean` | `false` | To control whether the string should be truncated or not |
-| lines    | `number`  | `3`     | Number of visible lines                                  |
-| debounce | `number`  | `300`   | Time in milliseconds used for debounce                   |
+| prop     | type      | required | default | description                                              |
+| -------- | --------- | -------- | ------- | -------------------------------------------------------- |
+| text     | `string`  | `true`   |         | Text you wish to clamp                                   |
+| ellipsis | `string`  | `false`  | `'…'`   | String displayed after the clamped `text`                |
+| expanded | `boolean` | `false`  | `false` | To control whether the string should be truncated or not |
+| lines    | `number`  | `false`  | `3`     | Number of visible lines                                  |
+| debounce | `number`  | `false`  | `300`   | Time in milliseconds used for debounce                   |
 
 ## Prior Art (packages I ~~copied~~ adapted code from)
 
