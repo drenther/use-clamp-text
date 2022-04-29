@@ -1,6 +1,6 @@
 # use-clamp-text
 
-![Bundle Size](https://badgen.net/bundlephobia/minzip/use-clamp-text) ![npm version](https://badgen.net/npm/v/use-clamp-text) ![types](https://badgen.net/npm/types/use-clamp-text) ![license](https://badgen.net/github/license/use-clamp-text)
+![Bundle Size](https://badgen.net/bundlephobia/minzip/use-clamp-text) ![npm version](https://badgen.net/npm/v/use-clamp-text) ![types](https://badgen.net/npm/types/use-clamp-text) ![license](https://badgen.net/github/license/drenther/use-clamp-text)
 
 react hook to clamp multiline text to a given height in a responsive way and with extreme flexibility _(under 2.5kb)_
 
