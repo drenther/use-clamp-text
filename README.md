@@ -31,7 +31,7 @@ const [ref, { noClamp, clampedText }] = useClampText({
       <h1>
         {noClamp ? 'Not truncated' : 'Truncated'}
       </h1>
-      <div>
+      <div ref={ref}>
         {clampedText}
       </div>
     </section>
