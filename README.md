@@ -45,13 +45,31 @@ const [ref, { noClamp, clampedText }] = useClampText({
 
 ## API Reference
 
-| prop     | type      | required | default | description                                              |
-| -------- | --------- | -------- | ------- | -------------------------------------------------------- |
-| text     | `string`  | `true`   |         | Text you wish to clamp                                   |
-| ellipsis | `string`  | `false`  | `'…'`   | String displayed after the clamped `text`                |
-| expanded | `boolean` | `false`  | `false` | To control whether the string should be truncated or not |
-| lines    | `number`  | `false`  | `3`     | Number of visible lines                                  |
-| debounce | `number`  | `false`  | `300`   | Time in milliseconds used for debounce                   |
+### Arguments
+
+The hook accepts only a single object argument is accepted with the following properties:
+
+| property  | type               | required | default | description                                                                                                                                                        |
+| --------- | ------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| text      | `string`           | `true`   |         | Text you wish to clamp                                                                                                                                             |
+| ellipsis  | `string \| number` | `false`  | `'…'`   | String displayed after the clamped text or number of characters to be trimmed off the string (useful for adding inline custom ellipsis like a `<a>` or `<button>`) |
+| expanded  | `boolean`          | `false`  | `false` | To control whether the string should be truncated or not                                                                                                           |
+| lines     | `number`           | `false`  | `3`     | Number of visible lines                                                                                                                                            |
+| debounce  | `number`           | `false`  | `300`   | Time in milliseconds used for debounce                                                                                                                             |
+| charWidth | `number`           | `false`  | `1.2`   | Character width to be assumed for calculating clamped string length (an average depending on your font size should work well enough)                               |
+
+### Return
+
+The hook returns a tuple -
+
+- [0] (first element) - `React.MutableRefObject<HTMLElement | null>` - a ref to attach to the element where the clamped text will be rendered
+- [1] (second element) - `Object` - The properties of the object are documented in the table below
+
+| property    | type      | description                                                                                                            |
+| ----------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| noClamp     | `boolean` | Whether the text is clamped or not. Will return true if not clamped                                                    |
+| clampedText | `string`  | The string to be rendered                                                                                              |
+| key         | `string`  | A key to attach to the element that contains the string to be rendered (only needed when using custom inline ellipsis) |
 
 ## Prior Art (packages I ~~copied~~ adapted code from)
 

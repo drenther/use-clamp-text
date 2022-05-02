@@ -8,23 +8,53 @@ import {
 
 const defaultEllipsis = '...';
 
+let key = 0;
+const getNewKey = () => `__clamp_text_key__${key++}`;
+
+interface ClampTextConfig {
+  text: string;
+  ellipsis: string | number;
+  lines?: number;
+  expanded?: boolean;
+  debounceTime?: number;
+  charWidth?: number;
+}
+
+interface ClampLineParams {
+  lineHeight: number;
+  originalText: string;
+  expanded: boolean;
+  ellipsis?: string | number;
+  lines: number;
+  charWidth: number;
+}
+
 export function useClampText({
   text,
   ellipsis = defaultEllipsis,
   lines = 3,
   expanded = false,
   debounceTime = 300,
-}) {
-  const [{ noClamp, clampedText }, setState] = useState(() => ({
+  charWidth = 1.2,
+}: ClampTextConfig) {
+  const [{ noClamp, clampedText, key }, setState] = useState(() => ({
     noClamp: false,
     clampedText: '.',
+    key: getNewKey(),
   }));
 
   const nodeRef = useRef<HTMLElement | null>();
   const lineHeightRef = useRef(0);
 
   const clampLines = useCallback(
-    ({ lineHeight, originalText, expanded, ellipsis, lines }) => {
+    ({
+      lineHeight,
+      originalText,
+      expanded,
+      ellipsis,
+      lines,
+      charWidth,
+    }: ClampLineParams) => {
       const node = nodeRef.current;
       if (!node) {
         return;
@@ -33,14 +63,21 @@ export function useClampText({
         setState({
           noClamp: true,
           clampedText: originalText,
+          key: getNewKey(),
         });
         return;
       }
 
       const maxHeight = lineHeight * lines + 1;
-      const ellipsisLength = defaultEllipsis
-        ? 5
-        : Math.ceil(ellipsis.length * 1.2);
+      let ellipsisLength = 0;
+      if (typeof ellipsis === 'string') {
+        ellipsisLength =
+          ellipsis === defaultEllipsis
+            ? 5
+            : Math.ceil(ellipsis.length * charWidth);
+      } else if (typeof ellipsis === 'number') {
+        ellipsisLength = Math.ceil(ellipsis * charWidth);
+      }
 
       let start = 0;
       let middle = 0;
@@ -51,7 +88,7 @@ export function useClampText({
       }
 
       function moveMarkers() {
-        const clientHeight = node.clientHeight;
+        const clientHeight = node?.clientHeight ?? 1;
         if (clientHeight <= maxHeight) {
           start = middle + 1;
         } else {
@@ -64,7 +101,11 @@ export function useClampText({
         node.innerText = originalText.slice(0, middle);
 
         if (middle === originalText.length) {
-          setState({ clampedText: originalText, noClamp: true });
+          setState({
+            clampedText: originalText,
+            noClamp: true,
+            key: getNewKey(),
+          });
           return;
         }
 
@@ -73,12 +114,13 @@ export function useClampText({
 
       const clampedText =
         originalText.slice(0, Math.max(middle - ellipsisLength, 0)).trim() +
-        ellipsis;
+        (typeof ellipsis === 'string' ? ellipsis : '');
 
       node.innerText = clampedText;
       setState({
         noClamp: false,
         clampedText,
+        key: getNewKey(),
       });
     },
     []
@@ -91,12 +133,13 @@ export function useClampText({
       expanded,
       ellipsis,
       lines,
+      charWidth,
     })
   );
 
   useDidMount(() => {
     if (text && !lineHeightRef.current) {
-      const lineHeight = nodeRef.current?.clientHeight + 1;
+      const lineHeight = (nodeRef.current?.clientHeight ?? 1) + 1;
       lineHeightRef.current = lineHeight;
       clampLines({
         lineHeight,
@@ -104,6 +147,7 @@ export function useClampText({
         expanded,
         ellipsis,
         lines,
+        charWidth,
       });
     }
   });
@@ -114,14 +158,16 @@ export function useClampText({
       expanded,
       ellipsis,
       lines,
+      charWidth,
     });
-  }, [expanded, text]);
+  }, [expanded, text, charWidth]);
 
   return [
     nodeRef,
     {
       noClamp,
       clampedText,
+      key,
     },
   ] as const;
 }
