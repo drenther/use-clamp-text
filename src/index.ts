@@ -123,5 +123,5 @@ export function useClampText({
       noClamp,
       clampedText,
     },
-  ];
+  ] as const;
 }
