@@ -160,7 +160,7 @@ export function useClampText({
       lines,
       charWidth,
     });
-  }, [expanded, text, charWidth]);
+  }, [expanded, text, charWidth, ellipsis, lines]);
 
   return [
     nodeRef,
