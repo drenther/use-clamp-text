@@ -1,0 +1,9 @@
+# --- Supply chain security ---
+ignoreScripts: true
+minimumReleaseAge: 10080
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
+onlyBuiltDependencies: []
+
+overrides:
+  unrun: 0.3.0
