@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        with:
+          version: 2026.9.15
+
+      - uses: pnpm/action-setup@5d445ecbfcb90fdf1556a629d018c79e97ff973b # v6.0.6
+        with:
+          cache: true
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run typecheck
+      - run: pnpm run test
+      - run: pnpm run test:coverage
+      - run: pnpm run build
+
+      - name: Post coverage comment
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          COMMENT_MARKER="<!-- use-clamp-text-coverage -->"
+          SUMMARY="coverage/coverage-summary.json"
+
+          if [ ! -f "$SUMMARY" ]; then
+            echo "No coverage summary found"
+            exit 0
+          fi
+
+          STATS=$(jq -r '.total | "\(.statements.pct)% | \(.branches.pct)% | \(.functions.pct)% | \(.lines.pct)%"' "$SUMMARY")
+
+          BODY="$COMMENT_MARKER
+          ## Coverage Report
+
+          | Package | Statements | Branches | Functions | Lines |
+          |---------|-----------|----------|-----------|-------|
+          | \`use-clamp-text\` | $STATS |
+
+          *Updated by CI — $(date -u '+%Y-%m-%d %H:%M UTC')*"
+
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | startswith(\"$COMMENT_MARKER\")) | .id" \
+            | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            gh api "repos/${{ github.repository }}/issues/comments/${EXISTING}" \
+              -X PATCH -f body="$BODY"
+          else
+            gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
+              -X POST -f body="$BODY"
+          fi

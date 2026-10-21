@@ -1,19 +1,13 @@
-import { useRef, useState, useCallback } from 'react';
-import {
-  useDebounce,
-  useOnWindowResize,
-  useDidMount,
-  useDidUpdate,
-} from 'rooks';
+import { useRef, useState, useCallback, useEffect } from "react";
 
-const defaultEllipsis = '...';
+const DEFAULT_ELLIPSIS = "...";
 
-let key = 0;
-const getNewKey = () => `__clamp_text_key__${key++}`;
+let keyCounter = 0;
+const getNewKey = () => `__clamp_text_key__${keyCounter++}`;
 
-interface ClampTextConfig {
+export interface ClampTextConfig {
   text: string;
-  ellipsis: string | number;
+  ellipsis?: string | number;
   lines?: number;
   expanded?: boolean;
   debounceTime?: number;
@@ -24,42 +18,50 @@ interface ClampLineParams {
   lineHeight: number;
   originalText: string;
   expanded: boolean;
-  ellipsis?: string | number;
+  ellipsis: string | number;
   lines: number;
   charWidth: number;
 }
 
+interface ClampState {
+  noClamp: boolean;
+  clampedText: string;
+  key: string;
+}
+
 export function useClampText({
   text,
-  ellipsis = defaultEllipsis,
+  ellipsis = DEFAULT_ELLIPSIS,
   lines = 3,
   expanded = false,
   debounceTime = 300,
   charWidth = 1.2,
 }: ClampTextConfig) {
-  const [{ noClamp, clampedText, key }, setState] = useState(() => ({
+  const [state, setState] = useState<ClampState>(() => ({
     noClamp: false,
-    clampedText: '.',
+    clampedText: ".",
     key: getNewKey(),
   }));
 
-  const nodeRef = useRef<HTMLElement | null>();
+  const nodeRef = useRef<HTMLElement | null>(null);
   const lineHeightRef = useRef(0);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clampLines = useCallback(
     ({
       lineHeight,
       originalText,
-      expanded,
-      ellipsis,
-      lines,
-      charWidth,
+      expanded: isExpanded,
+      ellipsis: ellipsisValue,
+      lines: lineCount,
+      charWidth: charWidthValue,
     }: ClampLineParams) => {
       const node = nodeRef.current;
       if (!node) {
         return;
       }
-      if (!originalText || expanded) {
+
+      if (!originalText || isExpanded) {
         setState({
           noClamp: true,
           clampedText: originalText,
@@ -68,15 +70,13 @@ export function useClampText({
         return;
       }
 
-      const maxHeight = lineHeight * lines + 1;
+      const maxHeight = lineHeight * lineCount + 1;
       let ellipsisLength = 0;
-      if (typeof ellipsis === 'string') {
+      if (typeof ellipsisValue === "string") {
         ellipsisLength =
-          ellipsis === defaultEllipsis
-            ? 5
-            : Math.ceil(ellipsis.length * charWidth);
-      } else if (typeof ellipsis === 'number') {
-        ellipsisLength = Math.ceil(ellipsis * charWidth);
+          ellipsisValue === DEFAULT_ELLIPSIS ? 5 : Math.ceil(ellipsisValue.length * charWidthValue);
+      } else if (typeof ellipsisValue === "number") {
+        ellipsisLength = Math.ceil(ellipsisValue * charWidthValue);
       }
 
       let start = 0;
@@ -85,15 +85,6 @@ export function useClampText({
 
       if (!node.clientHeight) {
         return;
-      }
-
-      function moveMarkers() {
-        const clientHeight = node?.clientHeight ?? 1;
-        if (clientHeight <= maxHeight) {
-          start = middle + 1;
-        } else {
-          end = middle - 1;
-        }
       }
 
       while (start <= end) {
@@ -109,12 +100,17 @@ export function useClampText({
           return;
         }
 
-        moveMarkers();
+        const clientHeight = node.clientHeight;
+        if (clientHeight <= maxHeight) {
+          start = middle + 1;
+        } else {
+          end = middle - 1;
+        }
       }
 
       const clampedText =
         originalText.slice(0, Math.max(middle - ellipsisLength, 0)).trim() +
-        (typeof ellipsis === 'string' ? ellipsis : '');
+        (typeof ellipsisValue === "string" ? ellipsisValue : "");
 
       node.innerText = clampedText;
       setState({
@@ -123,35 +119,18 @@ export function useClampText({
         key: getNewKey(),
       });
     },
-    []
-  );
-  const debouncedClampLines = useDebounce(clampLines, debounceTime);
-  useOnWindowResize(() =>
-    debouncedClampLines({
-      lineHeight: lineHeightRef.current,
-      originalText: text,
-      expanded,
-      ellipsis,
-      lines,
-      charWidth,
-    })
+    [],
   );
 
-  useDidMount(() => {
-    if (text && !lineHeightRef.current) {
+  useEffect(() => {
+    if (!text) {
+      setState({ noClamp: true, clampedText: "", key: getNewKey() });
+      return;
+    }
+    if (!lineHeightRef.current) {
       const lineHeight = (nodeRef.current?.clientHeight ?? 1) + 1;
       lineHeightRef.current = lineHeight;
-      clampLines({
-        lineHeight,
-        originalText: text,
-        expanded,
-        ellipsis,
-        lines,
-        charWidth,
-      });
     }
-  });
-  useDidUpdate(() => {
     clampLines({
       lineHeight: lineHeightRef.current,
       originalText: text,
@@ -160,14 +139,40 @@ export function useClampText({
       lines,
       charWidth,
     });
-  }, [expanded, text, charWidth, ellipsis, lines]);
+  }, [text, expanded, ellipsis, lines, charWidth, clampLines]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        clampLines({
+          lineHeight: lineHeightRef.current,
+          originalText: text,
+          expanded,
+          ellipsis,
+          lines,
+          charWidth,
+        });
+      }, debounceTime);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (debounceTimerRef.current !== null) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [text, expanded, ellipsis, lines, charWidth, debounceTime, clampLines]);
 
   return [
     nodeRef,
     {
-      noClamp,
-      clampedText,
-      key,
+      noClamp: state.noClamp,
+      clampedText: state.clampedText,
+      key: state.key,
     },
   ] as const;
 }
